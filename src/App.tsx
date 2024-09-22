@@ -6,6 +6,7 @@ import AllProducts from "./pages/products";
 import AdminProfile from "./pages/profile";
 import UserInfo from "./pages/user-info";
 import AdminDetails from "./pages/details";
+import AdminPanel from "./pages/customer-service";
 
 export interface UserDataProps {
   created_at: string;
@@ -45,10 +46,10 @@ function App() {
       path: "/admin-details",
       element: <AdminDetails />,
     },
-    // {
-    //   path: "/admin/customer-service",
-    //   element: <AdminPanel />
-    // }
+    {
+      path: "/customer-service",
+      element: <AdminPanel />
+    }
   ]);
 
   return (
