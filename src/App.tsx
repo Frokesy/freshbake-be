@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import AdminDashboard from "./pages/dashboard";
 import AllOrders from "./pages/orders";
+import AllProducts from "./pages/products";
 
 export interface UserDataProps {
   created_at: string;
@@ -25,10 +26,10 @@ function App() {
       path: "/admin/all-orders",
       element: <AllOrders />,
     },
-    // {
-    //   path: "/admin/all-products",
-    //   element: <AllProducts />,
-    // },
+    {
+      path: "/admin/all-products",
+      element: <AllProducts />,
+    },
     // {
     //   path: "/admin/admin-profile",
     //   element: <AdminProfile />,
