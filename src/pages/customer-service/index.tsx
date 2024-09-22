@@ -84,7 +84,7 @@ const AdminPanel = () => {
         <div className="flex items-center space-x-4 px-4 pt-10 bg-[#fff] w-[100%] pb-3">
           <div className="flex">
             <NavLink
-              to="/admin/admin-profile"
+              to="/admin-profile"
               className="bg-[#d9d9d9] p-1.5 rounded-full"
             >
               <ArrowLeft />
