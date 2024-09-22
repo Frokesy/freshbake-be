@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import AdminDashboard from "./pages/dashboard";
 import AllOrders from "./pages/orders";
 import AllProducts from "./pages/products";
+import AdminProfile from "./pages/profile";
 
 export interface UserDataProps {
   created_at: string;
@@ -30,10 +31,10 @@ function App() {
       path: "/admin/all-products",
       element: <AllProducts />,
     },
-    // {
-    //   path: "/admin/admin-profile",
-    //   element: <AdminProfile />,
-    // },
+    {
+      path: "/admin/admin-profile",
+      element: <AdminProfile />,
+    },
     // {
     //   path: "/admin/users-info",
     //   element: <UserInfo />,
