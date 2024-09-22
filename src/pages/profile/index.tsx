@@ -19,7 +19,7 @@ const AdminProfile = () => {
       id: 2,
       name: "Users Information",
       icon: <AccountIcon />,
-      route: "/admin/users-info"
+      route: "/user-info"
     },
     {
       id: 3,

@@ -15,10 +15,10 @@ interface ItemProps {
 
 const BottomNav: FC<BottomNavProps> = ({ active }) => {
   const items: ItemProps[] = [
-    { id: 1, name: "Dashboard", icon: <DashboardIcon />, route: "/admin/dashboard" },
-    { id: 2, name: "All Orders", icon: <OrderIcon />, route: "/admin/all-orders" },
-    { id: 3, name: "Products", icon: <ProductsIcon />, route: "/admin/all-products" },
-    { id: 4, name: "Account", icon: <AccountIcon />, route: "/admin/admin-profile" },
+    { id: 1, name: "Dashboard", icon: <DashboardIcon />, route: "/" },
+    { id: 2, name: "All Orders", icon: <OrderIcon />, route: "/orders" },
+    { id: 3, name: "Products", icon: <ProductsIcon />, route: "/products" },
+    { id: 4, name: "Account", icon: <AccountIcon />, route: "/admin-profile" },
   ];
   return (
     <div className="fixed bottom-0 w-[100%] lg:w-[450px] bg-[#fff] z-10">
