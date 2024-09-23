@@ -6,6 +6,9 @@ import { ArrowDown } from "../icons";
 import { supabase } from "../../../utils/supabaseClient";
 import ConfirmOrderStatusChange from "../modals/ConfirmOrderStatusChange";
 import { OrderItemProps } from "../../pages/dashboard";
+import { OrderStatusChange } from "../email-templates/OrderStatusChange";
+import { render } from "@react-email/render";
+import Plunk from "@plunk/node";
 
 export interface AllOrdersProps {
   data: { order: OrderItemProps; user: UserDataProps | undefined }[];
@@ -25,6 +28,12 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
     { value: "Out for Delivery", label: "Out for Delivery" },
     { value: "Delivered", label: "Delivered" },
   ];
+  const [userData, setUserData] = useState<UserDataProps>()
+  const [orderItem, setOrderItem] = useState<OrderItemProps>()
+
+  const plunkSecret = import.meta.env.VITE_PLUNK_SECRET;
+  const plunkClient = new Plunk(plunkSecret);
+
 
   const formatDate = (timestamp: string): string => {
     const date = new Date(timestamp);
@@ -43,6 +52,17 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
         : [...prev, orderId]
     );
   };
+  const getUser = async (userId: string) => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("userId", userId);
+        if (!error) {
+          return data[0]
+        } else {
+          console.log(error)
+        }
+  };
 
   const getResponse = async (response: string) => {
     setOpenConfirmationModal(false);
@@ -54,6 +74,29 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
           .update({ orderStatus: newStatus })
           .eq("transactionId", orderId);
         if (!error) {
+          try {
+            const emailHtml = render(
+              <OrderStatusChange
+                userData={userData}
+                cartItems={orderItem?.items}
+                orderId={orderId}
+                orderStatus={newStatus}
+                activeTab={orderItem?.deliveryOption}
+                expectedDeliveryDate={orderItem?.items[0].deliveryDay + ' by ' + orderItem?.items[0].deliveryTime}
+              />
+            );
+      
+            await plunkClient.emails.send({
+              to: userData?.email as string,
+              subject: "Your FreshBake Order Status Change",
+              body: await emailHtml,
+            });
+      
+            console.log("Order update email sent successfully.");
+          } catch (error) {
+            console.error("Failed to send order update email:", error);
+          }
+
           toast.success(
             "The order status has been updated, the user will be sent a mail to this effect",
             {
@@ -78,11 +121,18 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
     setOpenOptions(false);
   };
 
-  const handleStatusChange = (orderId: number, newStatus: string) => {
+  const handleStatusChange = async (orderId: number, newStatus: string, item: OrderItemProps) => {
     setSelectedOrder({ orderId, newStatus });
     setOpenConfirmationModal(true);
     setOption(newStatus);
+  
+    const fetchedUserData = await getUser(item.userId);
+    if (fetchedUserData) {
+      setUserData(fetchedUserData);
+      setOrderItem(item);
+    }
   };
+  
 
   return (
     <div>
@@ -191,7 +241,8 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
                                                 onClick={() => {
                                                   handleStatusChange(
                                                     order.transactionId,
-                                                    item.value
+                                                    item.value,
+                                                    order
                                                   );
                                                   setOpenOptions(false);
                                                 }}

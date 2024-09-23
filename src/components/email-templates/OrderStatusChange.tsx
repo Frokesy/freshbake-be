@@ -20,7 +20,6 @@ export interface CartItemProps {
     tag: string;
     img: string;
     weight: string;
-    desc: string;
     price: string;
     deliveryDay: string;
     deliveryTime: string;
@@ -30,14 +29,14 @@ export interface CartItemProps {
   
   interface OrderStatusTemplateProps {
     userData: UserDataProps | undefined;
-    cartItems: CartItemProps[];
+    cartItems: CartItemProps[] | undefined;
     orderId: number;
     orderStatus: string;
-    expectedDeliveryDate: string;
-    activeTab: string;
+    expectedDeliveryDate: string | undefined;
+    activeTab: string | undefined;
   }
   
-  export const OrderStatusUpdate: FC<OrderStatusTemplateProps> = ({
+  export const OrderStatusChange: FC<OrderStatusTemplateProps> = ({
     userData,
     cartItems,
     orderId,
@@ -73,7 +72,7 @@ export interface CartItemProps {
                   Order Summary
                 </Heading>
                 <Hr />
-                {cartItems.map((item) => (
+                {cartItems?.map((item) => (
                   <div key={item.id} style={{ marginBottom: "10px" }}>
                     <Text>
                       <strong>Item:</strong> {item.category} ({item.weight} {item.type})
