@@ -66,6 +66,30 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
     }
   };
 
+  const addToNotification = async (orderId: number, newStatus: string) => {
+    try {
+      const { error } = await supabase
+      .from("notifications")
+      .insert([
+        {
+          userId: userData?.userId,
+          title: "Your FreshBake Order Status Change",
+          message: `Your order #${orderId} is now  ${newStatus}.`,
+          timestamp: new Date().toISOString(),
+          read: false,
+        },
+      ])
+
+      if (!error) {
+        console.log("")
+      } else {
+        throw error
+      }
+    } catch (error) {
+      console.log("error in adding notification:", error)
+    }
+  }
+
   const getResponse = async (response: string) => {
     setOpenConfirmationModal(false);
     if (response === "yes" && selectedOrder) {
@@ -100,6 +124,7 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
             });
 
             console.log("Order update email sent successfully.");
+            addToNotification(orderId, newStatus)
             setLoading(false);
             toast.success(
               "The order status has been updated, the user will be sent a mail to this effect",
