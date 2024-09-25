@@ -12,7 +12,6 @@ import Plunk from "@plunk/node";
 import Spinner from "../defaults/Spinner";
 import "react-toastify/dist/ReactToastify.css";
 
-
 export interface AllOrdersProps {
   data: { order: OrderItemProps; user: UserDataProps | undefined }[];
 }
