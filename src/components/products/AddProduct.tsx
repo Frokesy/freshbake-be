@@ -210,7 +210,7 @@ const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
           >
             <option value="">Select Product Tag</option>
             <option value="Sardine">Sardine</option>
-            <option value="Buttered">Buttered</option>
+            <option value="Butter">Butter</option>
           </select>
           <div className="flex justify-between w-[100%]">
             <div className="w-[48%]">
