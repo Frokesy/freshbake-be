@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { supabase } from "../../../utils/supabaseClient";
+import { pb } from "../../../utils/pocketbaseCient";
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import Graph from "../../components/defaults/Chart";
@@ -73,16 +73,19 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const getOrders = async () => {
-      const { data, error } = await supabase.from("orders").select("*");
-      if (error) {
-        console.error(error);
-      } else {
-        setOrderItems(data);
-        calculateMetrics(data);
+      try {
+        const data = await pb.collection("orders").getFullList();
+        setOrderItems(data as unknown as OrderItemProps[]);
+        calculateMetrics(data as unknown as OrderItemProps[]);
+        transformDataForChart(data as unknown as OrderItemProps[], view);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
       }
     };
+  
     getOrders();
-  }, []);
+  }, [view]);
+  
 
   const transformDataForChart = (orders: OrderItemProps[], view: string) => {
     let data: any[] = [];
@@ -178,19 +181,6 @@ const AdminDashboard = () => {
 
     setChartData(data);
   };
-
-  useEffect(() => {
-    const getOrders = async () => {
-      const { data, error } = await supabase.from("orders").select("*");
-      if (error) {
-        console.error(error);
-      } else {
-        setOrderItems(data);
-        transformDataForChart(data, view);
-      }
-    };
-    getOrders();
-  }, [view]);
 
   const handleViewChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setView(event.target.value);
