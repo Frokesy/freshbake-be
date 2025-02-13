@@ -2,12 +2,12 @@ import { NavLink } from "react-router-dom";
 import { ArrowLeft } from "../../components/icons";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { supabase } from "../../../utils/supabaseClient";
 import { OrderItemProps } from "../dashboard";
 import { UserDataProps } from "../../App";
 import NewOrders from "../../components/orders/NewOrders";
 import CompleteOrders from "../../components/orders/CompleteOrders";
 import Container from "../../components/defaults/Container";
+import { pb } from "../../../utils/pocketbaseCient";
 
 const variants = {
   hidden: { opacity: 0 },
@@ -24,22 +24,23 @@ const AllOrders = () => {
   >([]);
 
   const getOrders = async () => {
-    const { data, error } = await supabase.from("orders").select("*");
-    if (error) {
-      console.error(error);
-    } else {
-      setOrderItems(data);
+    try {
+      const data = await pb.collection("orders").getFullList();
+      setOrderItems(data as unknown as OrderItemProps[]);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
     }
   };
-
+  
   const getUsers = async () => {
-    const { data, error } = await supabase.from("users").select("*");
-    if (error) {
-      console.error(error);
-    } else {
-      setUsers(data);
+    try {
+      const data = await pb.collection("users").getFullList();
+      setUsers(data as unknown as UserDataProps[]);
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
+  
   
   useEffect(() => {
     const fetchData = async () => {
