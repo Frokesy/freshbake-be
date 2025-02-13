@@ -2,16 +2,16 @@ import { toast, ToastContainer, Bounce } from "react-toastify";
 import { ArrowLeft, DeleteIcon, PlusIcon } from "../icons";
 import { FC, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { supabase } from "../../../utils/supabaseClient";
 import EditProduct from "./EditProduct";
 import ConfirmProductDeleteModal from "../modals/ConfirmProductDeleteModal";
+import { pb } from "../../../utils/pocketbaseCient";
 
 export interface ProductsOverviewProps {
   setActiveTab: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export interface ProductItemProps {
-  id: number;
+  id: string;
   type: string;
   category: string;
   tag: string;
@@ -28,19 +28,20 @@ const ProductsOverview: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
   const [selectedProduct, setSelectedProduct] =
     useState<ProductItemProps | null>(null);
 
-  useEffect(() => {
-    const getProducts = async () => {
-      const { data, error } = await supabase
-        .from("product-catalog")
-        .select("*");
-      if (!error) {
-        setProducts(data);
-      } else {
-        console.log(error);
-      }
-    };
-    getProducts();
-  }, []);
+    useEffect(() => {
+      const getProducts = async () => {
+        try {
+          const data = await pb.collection("product-catalog").getFullList();
+    
+          setProducts(data as unknown as ProductItemProps[]);
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        }
+      };
+    
+      getProducts();
+    }, []);
+    
 
   const handleDelete = async (product: ProductItemProps) => {
     setSelectedProduct(product);
@@ -49,14 +50,25 @@ const ProductsOverview: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
 
   const getResponse = async (response: string) => {
     setOpenConfirmationModal(false);
-
+  
     if (response === "yes" && selectedProduct) {
-      const { error } = await supabase
-        .from("product-catalog")
-        .delete()
-        .eq("id", selectedProduct.id);
-
-      if (error) {
+      try {
+        await pb.collection("product_catalog").delete(selectedProduct.id);
+  
+        toast.success("Product deleted successfully!", {
+          position: "top-right",
+          theme: "light",
+          autoClose: 1000,
+          hideProgressBar: false,
+          pauseOnHover: true,
+          draggable: true,
+          transition: Bounce,
+        });
+  
+        setProducts((prevProducts) =>
+          prevProducts?.filter((item) => item.id !== selectedProduct.id)
+        );
+      } catch (error) {
         console.error("Error deleting product:", error);
         toast.error("Error deleting product!", {
           position: "top-right",
@@ -67,24 +79,11 @@ const ProductsOverview: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
           draggable: true,
           transition: Bounce,
         });
-      } else {
-        toast.success("Product deleted successfully!", {
-          position: "top-right",
-          theme: "light",
-          autoClose: 1000,
-          hideProgressBar: false,
-          pauseOnHover: true,
-          draggable: true,
-          transition: Bounce,
-        });
-
-        setProducts((prevProducts) =>
-          prevProducts?.filter((item) => item.id !== selectedProduct.id)
-        );
       }
     }
     setSelectedProduct(null);
   };
+  
 
   return (
     <div className="">

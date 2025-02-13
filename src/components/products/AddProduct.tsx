@@ -6,7 +6,7 @@ import { BrokenImage } from "../icons";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { ProductsOverviewProps } from "./ProductsOverview.tsx";
 import Spinner from "../defaults/Spinner.tsx";
-import { supabase } from "../../../utils/supabaseClient.ts";
+import { pb } from "../../../utils/pocketbaseCient.ts";
 
 const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
   const [formData, setFormData] = useState({
@@ -80,7 +80,7 @@ const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
   const handleSubmit = async () => {
     setLoading(true);
     const { name, category, tag, price, size, desc } = formData;
-
+  
     if (!name || !category || !tag || !price || !size || !desc || !pic) {
       toast.error("Please fill all the fields!", {
         position: "top-right",
@@ -96,27 +96,19 @@ const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
       }, 1000);
       return;
     }
-
-    const { error: supabaseError } = await supabase
-      .from("product-catalog")
-      .insert({
-        type: name,
-        category,
-        tag,
-        price: price,
-        weight: `${size}g`,
-        desc,
-        img: pic,
-      });
-
-    setLoading(false);
-
-    if (supabaseError) {
-      setError((prevState) => ({
-        ...prevState,
-        supabase: "Error saving product. Please try again.",
-      }));
-    } else {
+  
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("type", name);
+      formDataToSend.append("category", category);
+      formDataToSend.append("tag", tag);
+      formDataToSend.append("price", price);
+      formDataToSend.append("weight", `${size}g`);
+      formDataToSend.append("desc", desc);
+      formDataToSend.append("img", pic);
+  
+      await pb.collection("product_catalog").create(formDataToSend);
+  
       toast.success("Product added successfully!", {
         position: "top-right",
         theme: "light",
@@ -126,6 +118,7 @@ const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
         draggable: true,
         transition: Bounce,
       });
+  
       setFormData({
         name: "",
         category: "",
@@ -135,8 +128,17 @@ const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
         desc: "",
       });
       setPic(undefined);
+    } catch (error) {
+      console.error("Error saving product:", error);
+      setError((prevState) => ({
+        ...prevState,
+        pocketbase: "Error saving product. Please try again.",
+      }));
     }
+  
+    setLoading(false);
   };
+  
 
   const handleImageClick = () => {
     if (fileInputRef.current) {
