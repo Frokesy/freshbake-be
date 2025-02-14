@@ -45,7 +45,7 @@ const CompleteOrders: FC<AllOrdersProps> = ({ data }) => {
                     <p className="text-[13px]">Order {order.transactionId}</p>
                   </div>
                   <div className="flex justify-between">
-                    <h2 className="text-[12px]">{formatDate(order.created_at)}</h2>
+                    <h2 className="text-[12px]">{formatDate(order.created)}</h2>
                     <p className="text-[13px]">Total: ${order.totalCost}</p>
                   </div>
                 </div>

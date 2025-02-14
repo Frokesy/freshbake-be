@@ -11,7 +11,7 @@ dayjs.extend(isBetween);
 
 export interface OrderItemProps {
     id: number;
-    created_at: string;
+    created: string;
     deliveryFee: string;
     deliveryOption: string;
     items: ItemProps[];
@@ -107,7 +107,7 @@ const AdminDashboard = () => {
       const monthsArray = generateMonthsArray(months);
 
       const monthlyData = orders.reduce((acc: any, order) => {
-        const orderMonth = dayjs(order.created_at).format("MMM");
+        const orderMonth = dayjs(order.created).format("MMM");
         if (!acc[orderMonth]) {
           acc[orderMonth] = 0;
         }
@@ -142,7 +142,7 @@ const AdminDashboard = () => {
          }
    
          const weeklyData = orders.reduce((acc: any, order) => {
-             const orderDate = dayjs(order.created_at);
+             const orderDate = dayjs(order.created);
  
              weeksArray.forEach((week, index) => {
                  if (orderDate.isBetween(week.start, week.end, null, "[]")) {
@@ -165,7 +165,7 @@ const AdminDashboard = () => {
       ).reverse();
 
       const last7DaysData = orders.reduce((acc: any, order) => {
-        const orderDay = dayjs(order.created_at).format("ddd");
+        const orderDay = dayjs(order.created).format("ddd");
         if (!acc[orderDay]) {
           acc[orderDay] = 0;
         }

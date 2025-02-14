@@ -40,7 +40,8 @@ const AllOrders = () => {
       console.error("Error fetching users:", error);
     }
   };
-  
+
+
   
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +55,7 @@ const AllOrders = () => {
     const matchOrdersToUsers = () => {
       const matchedOrders = orderItems.map((order) => ({
         order,
-        user: users.find((user) => user.userId === order.userId),
+        user: users.find((user) => user.id as unknown as string === order.userId),
       }));
       setOrdersWithUsers(matchedOrders);
     };
@@ -62,7 +63,7 @@ const AllOrders = () => {
       matchOrdersToUsers();
     }
   }, [orderItems, users]);
-
+  
   return (
     <Container active="All Orders">
       <div className="flex items-center space-x-4 px-4 pt-10">

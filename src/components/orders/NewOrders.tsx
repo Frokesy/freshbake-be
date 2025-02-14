@@ -86,10 +86,22 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
   
     if (response === "yes" && selectedOrder) {
       setLoading(true);
+  
       const { orderId, newStatus } = selectedOrder;
   
       try {
-        await pb.collection("orders").update(orderId as unknown as string, { orderStatus: newStatus });
+        const orders = await pb.collection("orders").getList(1, 1, {
+          filter: `transactionId = "${orderId}"`,
+        });
+  
+        if (orders.items.length === 0) {
+          console.error("Order not found with transactionId:", orderId);
+          setLoading(false);
+          return;
+        }
+  
+        const recordId = orders.items[0].id;   
+        await pb.collection("orders").update(recordId, { orderStatus: newStatus });
   
         try {
           const emailHtml = render(
@@ -136,6 +148,7 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
         }, 2500);
       } catch (error) {
         console.error("Failed to update order status:", error);
+        setLoading(false);
       }
     } else {
       setOption("");
@@ -143,6 +156,7 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
   
     setOpenOptions(false);
   };
+  
   
 
   const handleStatusChange = async (
@@ -193,7 +207,7 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
                           Order Items: {order.items.length}
                         </h2>
                         <p className="text-[13px]">
-                          {formatDate(order.created_at)}
+                          {formatDate(order.created)}
                         </p>
                       </div>
                     </div>
