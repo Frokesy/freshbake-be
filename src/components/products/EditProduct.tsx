@@ -2,10 +2,10 @@ import { FC, useRef, useState, useEffect } from "react";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { ProductItemProps } from "./ProductsOverview";
 import { ArrowLeft } from "../icons";
-import { supabase } from "../../../utils/supabaseClient";
 import Input from "../defaults/Input";
 import Button from "../defaults/Button";
 import Spinner from "../defaults/Spinner";
+import { pb } from "../../../utils/pocketbaseCient";
 
 interface EditProductProps {
   setEditedProduct: React.Dispatch<
@@ -118,7 +118,7 @@ const EditProduct: FC<EditProductProps> = ({
   const handleSubmit = async () => {
     setLoading(true);
     const { name, category, tag, price, size, desc } = formData;
-
+  
     if (!name || !category || !tag || !price || !size || !desc) {
       toast.error("Please fill all the fields!", {
         position: "top-right",
@@ -132,7 +132,7 @@ const EditProduct: FC<EditProductProps> = ({
       setLoading(false);
       return;
     }
-
+  
     const updatedData = {
       type: name || editedProduct?.type,
       category: category || editedProduct?.category,
@@ -142,20 +142,10 @@ const EditProduct: FC<EditProductProps> = ({
       desc: desc || editedProduct?.desc,
       img: pic || editedProduct?.img,
     };
-
-    const { error: supabaseError } = await supabase
-      .from("product-catalog")
-      .update(updatedData)
-      .eq("id", editedProduct?.id);
-
-    setLoading(false);
-
-    if (supabaseError) {
-      setError((prevState) => ({
-        ...prevState,
-        supabase: "Error updating product. Please try again.",
-      }));
-    } else {
+  
+    try {
+      await pb.collection("product-catalog").update(editedProduct?.id as string, updatedData);
+  
       toast.success("Product updated successfully!", {
         position: "top-right",
         theme: "light",
@@ -165,9 +155,11 @@ const EditProduct: FC<EditProductProps> = ({
         draggable: true,
         transition: Bounce,
       });
+  
       setTimeout(() => {
         window.location.reload();
-      }, 1500)
+      }, 1500);
+  
       setFormData({
         name: "",
         category: "",
@@ -177,8 +169,17 @@ const EditProduct: FC<EditProductProps> = ({
         desc: "",
       });
       setPic(undefined);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      setError((prevState) => ({
+        ...prevState,
+        pocketbase: "Error updating product. Please try again.",
+      }));
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   const handleImageClick = () => {
     if (fileInputRef.current) {

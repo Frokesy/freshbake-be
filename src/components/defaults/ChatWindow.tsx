@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import Spinner from "./Spinner";
 import { ArrowLeft, SendIcon } from "../icons";
-import { supabase } from "../../../utils/supabaseClient";
+import { pb } from "../../../utils/pocketbaseCient";
 
 interface ChatWindowProps {
   chatId: string;
@@ -25,19 +25,22 @@ const ChatWindow: FC<ChatWindowProps> = ({ chatId, setChatId }) => {
 
   const fetchMessages = async () => {
     setLoadingMessages(true);
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("chatId", chatId)
-      .order("timestamp", { ascending: true });
-
-    if (error) {
+  
+    try {
+      const data = await pb.collection("messages")
+        .getFullList<MessageProps>({
+          filter: `chatId = "${chatId}"`,
+          sort: "timestamp",
+        });
+  
+      setMessages(data);
+    } catch (error) {
       console.error("Error fetching messages:", error);
-    } else if (data) {
-      setMessages(data as MessageProps[]);
+    } finally {
+      setLoadingMessages(false);
     }
-    setLoadingMessages(false);
   };
+  
 
   useEffect(() => {
     fetchMessages();
@@ -61,18 +64,18 @@ const ChatWindow: FC<ChatWindowProps> = ({ chatId, setChatId }) => {
         timestamp: new Date().toISOString(),
         chatId: chatId,
       };
-
-      const { error } = await supabase.from("messages").insert([newMessage]);
-
-      if (error) {
-        console.error("Error sending message:", error);
-      } else {
+  
+      try {
+        await pb.collection("messages").create(newMessage);
         setMessages((prevMessages) => [...prevMessages, newMessage]);
         setReplyText("");
         console.log(chatId);
+      } catch (error) {
+        console.error("Error sending message:", error);
       }
     }
   };
+  
 
   const handleChatClose = () => {
     setChatId("");

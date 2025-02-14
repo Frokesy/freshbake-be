@@ -3,7 +3,6 @@ import { Bounce, toast, ToastContainer } from "react-toastify";
 import { AnimatePresence, motion } from "framer-motion";
 import { UserDataProps } from "../../App";
 import { ArrowDown } from "../icons";
-import { supabase } from "../../../utils/supabaseClient";
 import ConfirmOrderStatusChange from "../modals/ConfirmOrderStatusChange";
 import { OrderItemProps } from "../../pages/dashboard";
 import { OrderStatusChange } from "../email-templates/OrderStatusChange";
@@ -11,6 +10,7 @@ import { render } from "@react-email/render";
 import Plunk from "@plunk/node";
 import Spinner from "../defaults/Spinner";
 import "react-toastify/dist/ReactToastify.css";
+import { pb } from "../../../utils/pocketbaseCient";
 
 export interface AllOrdersProps {
   data: { order: OrderItemProps; user: UserDataProps | undefined }[];
@@ -55,104 +55,95 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
     );
   };
   const getUser = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("userId", userId);
-    if (!error) {
-      return data[0];
-    } else {
-      console.log(error);
+    try {
+      const user = await pb.collection("users").getFirstListItem(`id="${userId}"`);
+      return user;
+    } catch (error) {
+      console.error("Error fetching user:", error);
     }
   };
+  
 
   const addToNotification = async (orderId: number, newStatus: string) => {
     try {
-      const { error } = await supabase
-      .from("notifications")
-      .insert([
-        {
-          userId: userData?.userId,
-          title: "Your FreshBake Order Status Change",
-          message: `Your order #${orderId} is now  ${newStatus}.`,
-          timestamp: new Date().toISOString(),
-          read: false,
-        },
-      ])
-
-      if (!error) {
-        console.log("")
-      } else {
-        throw error
-      }
+      await pb.collection("notifications").create({
+        id: userData?.id,
+        title: "Your FreshBake Order Status Change",
+        message: `Your order #${orderId} is now ${newStatus}.`,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+  
+      console.log("Notification added successfully.");
     } catch (error) {
-      console.log("error in adding notification:", error)
+      console.error("Error adding notification:", error);
     }
-  }
+  };
+  
 
   const getResponse = async (response: string) => {
     setOpenConfirmationModal(false);
+  
     if (response === "yes" && selectedOrder) {
       setLoading(true);
       const { orderId, newStatus } = selectedOrder;
+  
       try {
-        const { error } = await supabase
-          .from("orders")
-          .update({ orderStatus: newStatus })
-          .eq("transactionId", orderId);
-        if (!error) {
-          try {
-            const emailHtml = render(
-              <OrderStatusChange
-                userData={userData}
-                cartItems={orderItem?.items}
-                orderId={orderId}
-                orderStatus={newStatus}
-                activeTab={orderItem?.deliveryOption}
-                expectedDeliveryDate={
-                  orderItem?.items[0].deliveryDay +
-                  " by " +
-                  orderItem?.items[0].deliveryTime
-                }
-              />
-            );
-
-            await plunkClient.emails.send({
-              to: userData?.email as string,
-              subject: "Your FreshBake Order Status Change",
-              body: await emailHtml,
-            });
-
-            console.log("Order update email sent successfully.");
-            addToNotification(orderId, newStatus)
-            setLoading(false);
-            toast.success(
-              "The order status has been updated, the user will be sent a mail to this effect",
-              {
-                position: "top-right",
-                theme: "light",
-                autoClose: 2000,
-                hideProgressBar: false,
-                pauseOnHover: true,
-                draggable: true,
-                transition: Bounce,
+        await pb.collection("orders").update(orderId as unknown as string, { orderStatus: newStatus });
+  
+        try {
+          const emailHtml = render(
+            <OrderStatusChange
+              userData={userData}
+              cartItems={orderItem?.items}
+              orderId={orderId}
+              orderStatus={newStatus}
+              activeTab={orderItem?.deliveryOption}
+              expectedDeliveryDate={
+                orderItem?.items[0].deliveryDay + " by " + orderItem?.items[0].deliveryTime
               }
-            );
-          } catch (error) {
-            console.error("Failed to send order update email:", error);
-          }
-
-          setTimeout(() => {
-            window.location.reload();
-          }, 2500);
+            />
+          );
+  
+          await plunkClient.emails.send({
+            to: userData?.email as string,
+            subject: "Your FreshBake Order Status Change",
+            body: await emailHtml,
+          });
+  
+          console.log("Order update email sent successfully.");
+          addToNotification(orderId, newStatus);
+          setLoading(false);
+  
+          toast.success(
+            "The order status has been updated, the user will be sent a mail to this effect",
+            {
+              position: "top-right",
+              theme: "light",
+              autoClose: 2000,
+              hideProgressBar: false,
+              pauseOnHover: true,
+              draggable: true,
+              transition: Bounce,
+            }
+          );
+        } catch (error) {
+          console.error("Failed to send order update email:", error);
         }
+  
+        setTimeout(() => {
+          window.location.reload();
+        }, 2500);
       } catch (error) {
-        console.error("Failed to update order status", error);
+        console.error("Failed to update order status:", error);
       }
-    } else setOption("");
-
+    } else {
+      setOption("");
+    }
+  
     setOpenOptions(false);
   };
+  
 
   const handleStatusChange = async (
     orderId: number,
@@ -165,7 +156,7 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
 
     const fetchedUserData = await getUser(item.userId);
     if (fetchedUserData) {
-      setUserData(fetchedUserData);
+      setUserData(fetchedUserData as unknown as UserDataProps);
       setOrderItem(item);
     }
   };

@@ -254,7 +254,7 @@ const AddProduct: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
         </div>
 
         {error.form && <p className="text-red-500">{error.form}</p>}
-        {error.supabase && <p className="text-red-500">{error.supabase}</p>}
+        {error.pocketbase && <p className="text-red-500">{error.pocketbase}</p>}
         {error.image && <p className="text-red-500">{error.image}</p>}
       </div>
     </div>
