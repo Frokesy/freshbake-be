@@ -31,7 +31,7 @@ const ProductsOverview: FC<ProductsOverviewProps> = ({ setActiveTab }) => {
     useEffect(() => {
       const getProducts = async () => {
         try {
-          const data = await pb.collection("product-catalog").getFullList();
+          const data = await pb.collection("product_catalog").getFullList();
     
           setProducts(data as unknown as ProductItemProps[]);
         } catch (error) {

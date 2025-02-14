@@ -144,7 +144,7 @@ const EditProduct: FC<EditProductProps> = ({
     };
   
     try {
-      await pb.collection("product-catalog").update(editedProduct?.id as string, updatedData);
+      await pb.collection("product_catalog").update(editedProduct?.id as string, updatedData);
   
       toast.success("Product updated successfully!", {
         position: "top-right",
