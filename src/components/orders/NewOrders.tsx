@@ -162,13 +162,14 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
   const handleStatusChange = async (
     orderId: number,
     newStatus: string,
+    userId: number | undefined,
     item: OrderItemProps
   ) => {
     setSelectedOrder({ orderId, newStatus });
     setOpenConfirmationModal(true);
     setOption(newStatus);
 
-    const fetchedUserData = await getUser(item.userId);
+    const fetchedUserData = await getUser(userId as unknown as string);
     if (fetchedUserData) {
       setUserData(fetchedUserData as unknown as UserDataProps);
       setOrderItem(item);
@@ -283,6 +284,7 @@ const NewOrders: FC<AllOrdersProps> = ({ data }) => {
                                                   handleStatusChange(
                                                     order.transactionId,
                                                     item.value,
+                                                    user?.id,
                                                     order
                                                   );
                                                   setOpenOptions(false);
