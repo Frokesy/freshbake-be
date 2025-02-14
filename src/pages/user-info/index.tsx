@@ -1,23 +1,25 @@
 import { NavLink } from "react-router-dom";
 import { ArrowLeft } from "../../components/icons";
 import { useEffect, useState } from "react";
-import { supabase } from "../../../utils/supabaseClient";
 import { UserDataProps } from "../../App";
 import Container from "../../components/defaults/Container";
+import { pb } from "../../../utils/pocketbaseCient";
 
 const UserInfo = () => {
   const [users, setUsers] = useState<UserDataProps[]>();
   useEffect(() => {
     const getUsers = async () => {
-      const { data, error } = await supabase.from("users").select("*");
-      if (!error) {
-        setUsers(data);
-      } else {
-        console.log(error);
+      try {
+        const data = await pb.collection("users").getFullList();
+        setUsers(data as unknown as UserDataProps[]);
+      } catch (error) {
+        console.error("Error fetching users:", error);
       }
     };
+  
     getUsers();
   }, []);
+  
 
 
   return (

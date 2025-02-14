@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../../utils/supabaseClient";
 import PageTransition from "../../components/defaults/PageTransition";
 import { NavLink } from "react-router-dom";
 import { ArrowLeft } from "../../components/icons";
 import ChatWindow from "../../components/defaults/ChatWindow";
+import { RecordModel } from "pocketbase";
+import { pb } from "../../../utils/pocketbaseCient";
 
 interface MessageDataProps {
   id?: string;
@@ -46,35 +47,35 @@ const AdminPanel = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .neq("sender", "admin");
-
-      if (error) {
-        console.error("Error fetching users:", error);
-      } else {
+      try {
+        const data = await pb.collection("messages").getFullList<RecordModel>({
+          filter: `sender != "admin"`,
+          sort: "-timestamp",
+        });
+  
         const latestMessagesBySender = Array.from(
-          data.reduce<Map<string, MessageDataProps>>((map, message) => {
-            const currentTimestamp = new Date(message.timestamp).getTime();
-            const existingMessage = map.get(message.sender);
-
+          data.reduce<Map<string, RecordModel>>((map, message) => {
+            const currentTimestamp = new Date(message.timestamp as string).getTime();
+            const existingMessage = map.get(message.sender as string);
+  
             if (
               !existingMessage ||
-              currentTimestamp > new Date(existingMessage.timestamp).getTime()
+              currentTimestamp > new Date(existingMessage.timestamp as string).getTime()
             ) {
-              map.set(message.sender, message);
+              map.set(message.sender as string, message);
             }
             return map;
           }, new Map())
         ).map(([, message]) => message);
-        setData(latestMessagesBySender);
+  
+        setData(latestMessagesBySender as unknown as MessageDataProps[]);
+      } catch (error) {
+        console.error("Error fetching users:", error);
       }
     };
-
+  
     fetchUsers();
   }, []);
-
   return (
     <PageTransition active="customer-service">
       {selectedChatId ? (

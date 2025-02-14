@@ -1,9 +1,9 @@
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Pen } from "../../components/icons";
-import { supabase } from "../../../utils/supabaseClient";
 import Spinner from "../../components/defaults/Spinner";
 import Container from "../../components/defaults/Container";
+import { pb } from "../../../utils/pocketbaseCient";
 
 interface AdminDataProps {
   vendorName: string;
@@ -20,40 +20,31 @@ const AdminDetails = () => {
 
   useEffect(() => {
     const fetchAdminDetails = async () => {
-      const { data, error } = await supabase
-        .from("admin")
-        .select("vendorName, pickupAddress, phoneNumber")
-        .eq("id", 1)
-        .single();
-
-      if (error) {
-        console.error("Error fetching admin details:", error);
-      } else {
+      try {
+        const data = await pb.collection("admin").getOne("6apn4zg6jd6h6pd");
         setVendorName(data.vendorName);
         setPickupAddress(data.pickupAddress);
         setPhoneNumber(data.phoneNumber);
-        setAdminData(data)
+        setAdminData(data as unknown as AdminDataProps);
+      } catch (error) {
+        console.error("Error fetching admin details:", error);
       }
     };
-
+  
     fetchAdminDetails();
   }, []);
-
+  
   const handleUpdate = async (field: string, value: string) => {
     setEditField(null);
-
-    const { error } = await supabase
-      .from("admin")
-      .update({ [field]: value })
-      .eq("id", 1);
-
-    if (error) {
-      console.error("Error updating admin details:", error);
-    } else {
+  
+    try {
+      await pb.collection("admin").update("6apn4zg6jd6h6pd", { [field]: value });
       console.log(`${field} updated successfully.`);
+    } catch (error) {
+      console.error("Error updating admin details:", error);
     }
   };
-
+  
   if (!adminData) {
     return <div className="h-screen flex items-center justify-center"><Spinner color="#000" /></div>;
   }
