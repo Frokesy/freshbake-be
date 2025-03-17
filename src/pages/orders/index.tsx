@@ -75,7 +75,7 @@ const AllOrders = () => {
             <ArrowLeft />
           </NavLink>
         </div>
-        <h2 className="font-semibold text-[24px]">My Orders</h2>
+        <h2 className="font-semibold text-[24px]">All Orders</h2>
       </div>
       <div className="mt-4 mb-2 mx-4 bg-[#d9d9d9] p-1.5 items-center rounded-lg text-[14px] flex">
         <p
