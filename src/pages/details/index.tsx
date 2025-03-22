@@ -10,12 +10,13 @@ interface AdminDataProps {
   pickupAddress: string;
   phoneNumber: string;
 }
- 
+
 const AdminDetails = () => {
   const [vendorName, setVendorName] = useState<string | null>(null);
   const [pickupAddress, setPickupAddress] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
-  const [adminData, setAdminData] = useState<AdminDataProps>()
+  const [deliveryFee, setDeliveryFee] = useState<string | null>(null);
+  const [adminData, setAdminData] = useState<AdminDataProps>();
   const [editField, setEditField] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,28 +26,35 @@ const AdminDetails = () => {
         setVendorName(data.vendorName);
         setPickupAddress(data.pickupAddress);
         setPhoneNumber(data.phoneNumber);
+        setDeliveryFee(data.deliveryFee);
         setAdminData(data as unknown as AdminDataProps);
       } catch (error) {
         console.error("Error fetching admin details:", error);
       }
     };
-  
+
     fetchAdminDetails();
   }, []);
-  
+
   const handleUpdate = async (field: string, value: string) => {
     setEditField(null);
-  
+
     try {
-      await pb.collection("admin").update("6apn4zg6jd6h6pd", { [field]: value });
+      await pb
+        .collection("admin")
+        .update("6apn4zg6jd6h6pd", { [field]: value });
       console.log(`${field} updated successfully.`);
     } catch (error) {
       console.error("Error updating admin details:", error);
     }
   };
-  
+
   if (!adminData) {
-    return <div className="h-screen flex items-center justify-center"><Spinner color="#000" /></div>;
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Spinner color="#000" />
+      </div>
+    );
   }
 
   return (
@@ -77,7 +85,10 @@ const AdminDetails = () => {
               <p className="text-[#7a7474]">{vendorName}</p>
             )}
           </div>
-          <div className="cursor-pointer" onClick={() => setEditField("vendorName")}>
+          <div
+            className="cursor-pointer"
+            onClick={() => setEditField("vendorName")}
+          >
             <Pen />
           </div>
         </div>
@@ -90,7 +101,9 @@ const AdminDetails = () => {
                 type="text"
                 value={pickupAddress || ""}
                 onChange={(e) => setPickupAddress(e.target.value)}
-                onBlur={() => handleUpdate("pickupAddress", pickupAddress || "")}
+                onBlur={() =>
+                  handleUpdate("pickupAddress", pickupAddress || "")
+                }
                 className="border-none bg-inherit p-1 outline-none"
                 autoFocus
               />
@@ -98,7 +111,10 @@ const AdminDetails = () => {
               <p className="text-[#7a7474]">{pickupAddress}</p>
             )}
           </div>
-          <div className="cursor-pointer" onClick={() => setEditField("pickupAddress")}>
+          <div
+            className="cursor-pointer"
+            onClick={() => setEditField("pickupAddress")}
+          >
             <Pen />
           </div>
         </div>
@@ -119,7 +135,34 @@ const AdminDetails = () => {
               <p className="text-[#7a7474]">{phoneNumber}</p>
             )}
           </div>
-          <div className="cursor-pointer" onClick={() => setEditField("phoneNumber")}>
+          <div
+            className="cursor-pointer"
+            onClick={() => setEditField("phoneNumber")}
+          >
+            <Pen />
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center border border-[#e8e8e8] p-4">
+          <div className="">
+            <h2 className="text-[12px]">Delivery Fee</h2>
+            {editField === "deliveryFee" ? (
+              <input
+                type="text"
+                value={deliveryFee || ""}
+                onChange={(e) => setDeliveryFee(e.target.value)}
+                onBlur={() => handleUpdate("deliveryFee", deliveryFee || "")}
+                className="border-none bg-inherit p-1 outline-none"
+                autoFocus
+              />
+            ) : (
+              <p className="text-[#7a7474]">${deliveryFee}</p>
+            )}
+          </div>
+          <div
+            className="cursor-pointer"
+            onClick={() => setEditField("deliveryFee")}
+          >
             <Pen />
           </div>
         </div>
